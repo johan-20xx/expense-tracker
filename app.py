@@ -5,10 +5,12 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'expenseiq_secret_2026'
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'Iwillnottell.2'
-app.config['MYSQL_DB'] = 'expense_tracker'
+import os
+app.config['MYSQL_HOST'] = os.environ.get('MYSQLHOST', 'localhost')
+app.config['MYSQL_USER'] = os.environ.get('MYSQLUSER', 'root')
+app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQLPASSWORD', 'your_local_password')
+app.config['MYSQL_DB'] = os.environ.get('MYSQLDATABASE', 'expense_tracker')
+app.config['MYSQL_PORT'] = int(os.environ.get('MYSQLPORT', 3306))
 mysql = MySQL(app)
 @app.context_processor
 def inject_settings():
