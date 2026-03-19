@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Goals — ExpenseIQ{% endblock %}
+{% block body %}
+<nav>
+  <a class="nav-logo" href="/dashboard">💸 ExpenseIQ</a>
+  <div class="nav-links">
+    <a href="/dashboard">Dashboard</a><a href="/income">Income</a>
+    <a href="/budget">Budget</a><a href="/goals" class="active">Goals</a><a href="/profile">Profile</a>
+  </div>
+  <div class="nav-right"><a href="/logout" class="btn btn-ghost btn-sm">Logout</a></div>
+</nav>
+<div class="main" style="max-width:700px;">
+  <div class="page-title">Savings Goals 🎯</div>
+  <div class="page-sub">Set targets and track your progress</div>
+
+  <div class="card fade-up" style="margin-bottom:24px;">
+    <div class="card-title">New Goal</div>
+    <form method="POST">
+      <input type="hidden" name="action" value="add">
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Goal Title</label>
+          <input type="text" name="title" placeholder="e.g. New laptop, Trip to Goa" required>
+        </div>
+        <div class="form-group">
+          <label>Target Amount ({{ settings.currency }})</label>
+          <input type="number" step="0.01" name="target" required>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Already Saved</label>
+          <input type="number" step="0.01" name="saved" value="0">
+        </div>
+        <div class="form-group">
+          <label>Deadline (optional)</label>
+          <input type="date" name="deadline">
+        </div>
+      </div>
+      <button class="btn btn-primary" type="submit">Add Goal →</button>
+    </form>
+  </div>
+
+  {% if goals %}
+  <div style="display:flex;flex-direction:column;gap:14px;" class="fade-up-2">
+    {% for g in goals %}
+    {% set pct = [g[4]/g[3]*100, 100]|min if g[3] > 0 else 0 %}
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <div style="font-weight:700;font-size:16px;">{{ g[2] }}</div>
+          {% if g[5] %}<div style="font-size:12px;color:var(--muted);">Deadline: {{ g[5] }}</div>{% endif %}
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:18px;font-weight:800;color:var(--accent)">{{ settings.currency }}{{ "%.0f"|format(g[4]) }}</div>
+          <div style="font-size:12px;color:var(--muted)">of {{ settings.currency }}{{ "%.0f"|format(g[3]) }}</div>
+        </div>
+      </div>
+      <div class="progress-bar" style="height:10px;">
+        <div class="progress-fill" style="width:{{ pct }}%;{% if pct >= 100 %}background:#16a34a{% elif pct >= 60 %}background:#22d3ee{% else %}background:#f59e0b{% endif %}"></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;">{{ "%.0f"|format(pct) }}% complete</div>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <form method="POST" style="display:flex;gap:8px;flex:1;">
+          <input type="hidden" name="action" value="update">
+          <input type="hidden" name="goal_id" value="{{ g[0] }}">
+          <input type="number" step="0.01" name="saved" value="{{ g[4] }}" style="flex:1;padding:8px 12px;font-size:13px;">
+          <button class="btn btn-primary btn-sm" type="submit">Update</button>
+        </form>
+        <form method="POST">
+          <input type="hidden" name="action" value="delete">
+          <input type="hidden" name="goal_id" value="{{ g[0] }}">
+          <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('Delete goal?')">Del</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty card fade-up"><div class="empty-icon">🎯</div><p>No goals yet. Set one above!</p></div>
+  {% endif %}
+</div>
+{% endblock %}

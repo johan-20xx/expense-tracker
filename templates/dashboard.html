@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — ExpenseIQ{% endblock %}
+{% block body %}
+<nav>
+  <a class="nav-logo" href="/dashboard">💸 ExpenseIQ</a>
+  <div class="nav-links">
+    <a href="/dashboard" class="active">Dashboard</a>
+    <a href="/income">Income</a>
+    <a href="/budget">Budget</a>
+    <a href="/goals">Goals</a>
+    <a href="/profile">Profile</a>
+  </div>
+  <div class="nav-right">
+    <a href="/add" class="btn btn-primary btn-sm">+ Add Expense</a>
+    <a href="/export" class="btn btn-ghost btn-sm">⬇ CSV</a>
+    <a href="/logout" class="btn btn-ghost btn-sm">Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+  <!-- Greeting -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;" class="fade-up">
+    <div>
+      <div class="page-title">Hey, {{ username }} 👋</div>
+      <div class="page-sub">Here's your financial snapshot.</div>
+    </div>
+    <!-- Month filter -->
+    <form method="GET" style="display:flex;gap:8px;align-items:center;">
+      <select name="month" style="width:auto;padding:8px 12px;font-size:13px;" onchange="this.form.submit()">
+        {% for i in range(1,13) %}
+        <option value="{{ i }}" {% if i == month %}selected{% endif %}>{{ mnames[i-1] }}</option>
+        {% endfor %}
+      </select>
+      <select name="year" style="width:auto;padding:8px 12px;font-size:13px;" onchange="this.form.submit()">
+        {% for y in range(2023, 2027) %}
+        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <!-- Over budget alert -->
+  {% if over_budget %}
+  <div class="alert alert-red fade-up">⚠️ You've exceeded your monthly budget! Consider reviewing your spending.</div>
+  {% endif %}
+
+  <!-- Tip -->
+  {% if tip %}
+  <div style="background:var(--accent-light);border-radius:10px;padding:12px 16px;font-size:13px;color:#166534;margin-bottom:20px;display:flex;gap:10px;align-items:center;" class="fade-up">
+    <span>💡</span><span>{{ tip }}</span>
+  </div>
+  {% endif %}
+
+  <!-- Stats -->
+  <div class="grid-4 fade-up" style="margin-bottom:20px;">
+    <div class="card">
+      <div class="card-title">Total Spent</div>
+      <div class="stat-value {% if budget and total > budget %}red{% else %}green{% endif %}">{{ settings.currency }}{{ "%.0f"|format(total) }}</div>
+      {% if budget %}<div style="font-size:12px;color:var(--muted);margin-top:4px;">Budget: {{ settings.currency }}{{ "%.0f"|format(budget) }}</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:{{ [total/budget*100, 100]|min }}%;{% if total > budget %}background:var(--danger);{% endif %}"></div></div>{% endif %}
+    </div>
+    <div class="card">
+      <div class="card-title">Income</div>
+      <div class="stat-value green">{{ settings.currency }}{{ "%.0f"|format(income_total) }}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">This month</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Savings</div>
+      <div class="stat-value {% if savings and savings >= 0 %}green{% else %}red{% endif %}">
+        {% if savings is not none %}{{ settings.currency }}{{ "%.0f"|format(savings) }}{% else %}—{% endif %}
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">Income - Expenses</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Transactions</div>
+      <div class="stat-value">{{ expenses|length }}</div>
+      {% if most_spent %}<div style="font-size:12px;color:var(--muted);margin-top:4px;">Most: {{ most_spent }}</div>{% endif %}
+    </div>
+  </div>
+
+  <!-- Insights -->
+  {% if insights %}
+  <div class="fade-up-2" style="margin-bottom:20px;">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      {% for insight in insights %}
+      <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:500;color:var(--text);">{{ insight }}</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Charts -->
+  {% if cat_labels %}
+  <div class="grid-2 fade-up-2" style="margin-bottom:20px;">
+    <div class="card">
+      <div class="card-title">Spending by Category</div>
+      <canvas id="pieChart" height="200"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Monthly Trend</div>
+      <canvas id="barChart" height="200"></canvas>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Filter + Table -->
+  <div class="fade-up-3">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-size:16px;font-weight:700;">Expenses</div>
+      <form method="GET" style="display:flex;gap:8px;">
+        <input type="hidden" name="month" value="{{ month }}">
+        <input type="hidden" name="year" value="{{ year }}">
+        <select name="category" style="width:auto;padding:8px 12px;font-size:13px;" onchange="this.form.submit()">
+          <option value="all" {% if cat_filter == 'all' %}selected{% endif %}>All Categories</option>
+          {% for c in categories %}
+          <option value="{{ c }}" {% if cat_filter == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+
+    {% if expenses %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th><th>Amount</th><th>Category</th><th>Date</th><th>Location</th><th>Who Paid</th><th>Note</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in expenses %}
+          <tr>
+            <td><strong>{{ e[2] }}</strong> {% if e[9] %}<span style="font-size:11px;color:var(--accent);font-weight:600;">↻</span>{% endif %}</td>
+            <td><strong style="color:var(--accent)">{{ settings.currency }}{{ e[3] }}</strong></td>
+            <td><span class="tag tag-green">{{ e[4] }}</span></td>
+            <td style="color:var(--muted);">{{ e[5] }}</td>
+            <td style="color:var(--muted);font-size:13px;">{{ e[7] or '—' }}</td>
+            <td style="color:var(--muted);font-size:13px;">{{ e[8] or '—' }}</td>
+            <td style="color:var(--muted);font-size:13px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ e[6] or '—' }}</td>
+            <td>
+              <div style="display:flex;gap:6px;">
+                <a href="/edit/{{ e[0] }}" class="btn btn-ghost btn-sm">Edit</a>
+                <a href="/delete/{{ e[0] }}" class="btn btn-danger btn-sm" onclick="return confirm('Delete this?')">Del</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;text-align:right;font-size:14px;font-weight:700;color:var(--accent)">
+      Total: {{ settings.currency }}{{ "%.2f"|format(total) }}
+    </div>
+    {% else %}
+    <div class="empty card">
+      <div class="empty-icon">🧾</div>
+      <p>No expenses for this period.</p>
+      <a href="/add" class="btn btn-primary">Add First Expense</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+{% if cat_labels %}
+const colors = ['#16a34a','#22d3ee','#f59e0b','#8b5cf6','#ef4444','#ec4899','#84cc16','#f97316'];
+new Chart(document.getElementById('pieChart'), {
+  type: 'doughnut',
+  data: {
+    labels: {{ cat_labels | tojson }},
+    datasets: [{ data: {{ cat_values | tojson }}, backgroundColor: colors, borderWidth: 0 }]
+  },
+  options: { plugins: { legend: { position: 'bottom', labels: { font: { family: 'Plus Jakarta Sans', size: 12 } } } }, cutout: '65%' }
+});
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ trend_labels | tojson }},
+    datasets: [{ label: 'Spent', data: {{ trend_values | tojson }}, backgroundColor: '#86efac', borderRadius: 6 }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { grid: { color: '#f3f4f6' }, ticks: { font: { family: 'Plus Jakarta Sans' } } },
+      x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans' } } }
+    }
+  }
+});
+{% endif %}
+</script>
+{% endblock %}

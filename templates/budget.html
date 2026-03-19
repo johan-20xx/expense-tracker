@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Budget — ExpenseIQ{% endblock %}
+{% block body %}
+<nav>
+  <a class="nav-logo" href="/dashboard">💸 ExpenseIQ</a>
+  <div class="nav-links">
+    <a href="/dashboard">Dashboard</a><a href="/income">Income</a>
+    <a href="/budget" class="active">Budget</a><a href="/goals">Goals</a><a href="/profile">Profile</a>
+  </div>
+  <div class="nav-right"><a href="/logout" class="btn btn-ghost btn-sm">Logout</a></div>
+</nav>
+<div class="main" style="max-width:700px;">
+  <div class="page-title">Monthly Budget</div>
+  <div class="page-sub">Set spending limits for each month</div>
+
+  <div class="card fade-up" style="margin-bottom:20px;">
+    <div class="card-title">Set Budget</div>
+    <form method="POST">
+      <div class="grid-3">
+        <div class="form-group">
+          <label>Month</label>
+          <select name="month">
+            {% for i in range(1,13) %}<option value="{{ i }}" {% if i == now.month %}selected{% endif %}>{{ mnames[i-1] }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Year</label>
+          <select name="year">
+            {% for y in range(2023,2027) %}<option value="{{ y }}" {% if y == now.year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Limit Amount</label>
+          <input type="number" step="0.01" name="limit_amount" placeholder="e.g. 5000" required>
+        </div>
+      </div>
+      <button class="btn btn-primary" type="submit">Save Budget →</button>
+    </form>
+  </div>
+
+  {% if budgets %}
+  <div class="table-wrap fade-up-2">
+    <table>
+      <thead><tr><th>Month</th><th>Year</th><th>Budget Limit</th></tr></thead>
+      <tbody>
+        {% for b in budgets %}
+        <tr>
+          <td><strong>{{ mnames[b[2]-1] }}</strong></td>
+          <td>{{ b[3] }}</td>
+          <td><strong style="color:var(--accent)">{{ settings.currency }}{{ b[4] }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty card fade-up"><div class="empty-icon">🎯</div><p>No budgets set yet.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

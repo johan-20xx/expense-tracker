@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Register — ExpenseIQ{% endblock %}
+{% block body %}
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh;
+    background: linear-gradient(135deg, #f0fdf4 0%, #f4f7f5 50%, #ecfdf5 100%); }
+  .auth-card { background: #fff; border: 1px solid var(--border); border-radius: 20px;
+    padding: 48px 40px; width: 100%; max-width: 420px; box-shadow: 0 8px 40px rgba(0,0,0,0.08); }
+  .brand { font-size: 30px; font-weight: 800; color: var(--accent); letter-spacing: -1px; margin-bottom: 4px; }
+  .brand-sub { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+</style>
+<div class="auth-card fade-up">
+  <div class="brand">💸 ExpenseIQ</div>
+  <p class="brand-sub">Create your free account.</p>
+  {% if error %}<div class="alert alert-red">{{ error }}</div>{% endif %}
+  <form method="POST" action="/register">
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" name="username" placeholder="Your name" required>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="you@email.com" required>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Choose a strong password" required>
+    </div>
+    <button class="btn btn-primary" style="width:100%;padding:13px;font-size:15px;" type="submit">Create Account →</button>
+  </form>
+  <p style="text-align:center;margin-top:20px;font-size:14px;color:var(--muted)">
+    Already have an account? <a href="/login" style="color:var(--accent);font-weight:600;">Sign in</a>
+  </p>
+</div>
+{% endblock %}

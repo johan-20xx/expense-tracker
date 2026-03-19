@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Add Expense — ExpenseIQ{% endblock %}
+{% block body %}
+<nav>
+  <a class="nav-logo" href="/dashboard">💸 ExpenseIQ</a>
+  <div class="nav-links">
+    <a href="/dashboard">Dashboard</a><a href="/income">Income</a>
+    <a href="/budget">Budget</a><a href="/goals">Goals</a><a href="/profile">Profile</a>
+  </div>
+  <div class="nav-right"><a href="/logout" class="btn btn-ghost btn-sm">Logout</a></div>
+</nav>
+<div class="main" style="max-width:600px;">
+  <a href="/dashboard" style="color:var(--muted);text-decoration:none;font-size:13px;">← Back</a>
+  <div class="page-title" style="margin-top:12px;">Add Expense</div>
+  <div class="page-sub">Record a new expense</div>
+  <div class="card fade-up">
+    <form method="POST" action="/add">
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" name="title" placeholder="e.g. Lunch, Auto fare..." required>
+        </div>
+        <div class="form-group">
+          <label>Amount ({{ settings.currency }})</label>
+          <input type="number" step="0.01" name="amount" placeholder="0.00" required>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Category</label>
+          <select name="category" id="categorySelect" onchange="toggleCustom()">
+            <option value="Food">🍔 Food</option>
+            <option value="Transport">🚌 Transport</option>
+            <option value="Shopping">🛍️ Shopping</option>
+            <option value="Education">📚 Education</option>
+            <option value="Entertainment">🎬 Entertainment</option>
+            <option value="Health">💊 Health</option>
+            <option value="Bills">💡 Bills</option>
+            <option value="Other">✏️ Other (specify)</option>
+          </select>
+        </div>
+        <div class="form-group" id="customCatGroup" style="display:none;">
+          <label>Custom Category</label>
+          <input type="text" name="custom_category" placeholder="e.g. Gaming, Travel...">
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" name="date" required>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Location (optional)</label>
+          <input type="text" name="location" placeholder="e.g. Swiggy, College canteen">
+        </div>
+        <div class="form-group">
+          <label>Who Paid (optional)</label>
+          <input type="text" name="who_paid" placeholder="e.g. Me, Rahul, Split">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes (optional)</label>
+        <textarea name="notes" placeholder="Any extra details..."></textarea>
+      </div>
+      <div class="form-group checkbox-group">
+        <input type="checkbox" name="is_recurring" id="recurring">
+        <label for="recurring" style="text-transform:none;font-size:14px;font-weight:500;color:var(--text);">🔄 This is a recurring expense (monthly)</label>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:13px;font-size:15px;">Save Expense →</button>
+    </form>
+  </div>
+</div>
+<script>
+function toggleCustom() {
+  const sel = document.getElementById('categorySelect').value;
+  document.getElementById('customCatGroup').style.display = sel === 'Other' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

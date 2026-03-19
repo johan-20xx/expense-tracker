@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Profile — ExpenseIQ{% endblock %}
+{% block body %}
+<nav>
+  <a class="nav-logo" href="/dashboard">💸 ExpenseIQ</a>
+  <div class="nav-links">
+    <a href="/dashboard">Dashboard</a><a href="/income">Income</a>
+    <a href="/budget">Budget</a><a href="/goals">Goals</a><a href="/profile" class="active">Profile</a>
+  </div>
+  <div class="nav-right"><a href="/logout" class="btn btn-ghost btn-sm">Logout</a></div>
+</nav>
+<div class="main" style="max-width:600px;">
+  <div class="page-title">Profile Settings</div>
+  <div class="page-sub">Manage your account</div>
+
+  {% if msg %}<div class="alert {% if '✅' in msg %}alert-green{% else %}alert-red{% endif %} fade-up">{{ msg }}</div>{% endif %}
+
+  <div class="card fade-up" style="margin-bottom:20px;">
+    <div class="card-title">Account Info</div>
+    <form method="POST">
+      <input type="hidden" name="action" value="update">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" value="{{ user[1] }}" required>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" value="{{ user[2] }}" disabled style="opacity:0.5;">
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Currency Symbol</label>
+          <select name="currency">
+            <option value="₹" {% if user[4] == '₹' %}selected{% endif %}>₹ Indian Rupee</option>
+            <option value="$" {% if user[4] == '$' %}selected{% endif %}>$ US Dollar</option>
+            <option value="€" {% if user[4] == '€' %}selected{% endif %}>€ Euro</option>
+            <option value="£" {% if user[4] == '£' %}selected{% endif %}>£ British Pound</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Theme</label>
+          <select name="theme">
+            <option value="light" {% if user[5] == 'light' %}selected{% endif %}>☀️ Light</option>
+            <option value="dark" {% if user[5] == 'dark' %}selected{% endif %}>🌙 Dark</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" type="submit">Save Changes →</button>
+    </form>
+  </div>
+
+  <div class="card fade-up-2">
+    <div class="card-title">Change Password</div>
+    <form method="POST">
+      <input type="hidden" name="action" value="password">
+      <div class="form-group">
+        <label>Current Password</label>
+        <input type="password" name="old_password" required>
+      </div>
+      <div class="form-group">
+        <label>New Password</label>
+        <input type="password" name="new_password" required>
+      </div>
+      <button class="btn btn-primary" type="submit">Change Password →</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
